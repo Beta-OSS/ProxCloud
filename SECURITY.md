@@ -26,9 +26,7 @@ Please do not include passwords, API tokens, private keys, personal information,
 
 ### Email Reporting
 
-If private GitHub vulnerability reporting is unavailable, security issues may be reported to:
-
-**[riley.grimwood@icloud.com]**
+If private GitHub vulnerability reporting is unavailable, security issues may be reported to: **riley.grimwood@icloud.com**
 
 Please use an appropriate subject such as:
 
