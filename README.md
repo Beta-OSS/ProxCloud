@@ -214,7 +214,7 @@ The project is not intended to replace the Proxmox management interface. Instead
 
 Contributions, ideas, bug reports, and architectural feedback are welcome. I am still learning a lot through this project, so collaboration and criticism are encouraged.
 
-If you are interested in contributing, please see CONTRIBUTING.md.
+If you are interested in contributing, please see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Some areas where contributions could be particularly useful include:
 
