@@ -1,0 +1,128 @@
+<div id="vm-templates-panel">
+  {% if message %}
+    <p class="flash ok" role="status">{{ message }}</p>
+  {% endif %}
+
+  {% for error in errors %}
+    <p class="flash err" role="alert">{{ error }}</p>
+  {% endfor %}
+
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h2>VM Templates</h2>
+        <p>
+          Manage the Proxmox VM templates available for deployment.
+        </p>
+      </div>
+
+      <form
+        method="post"
+        action="/admin/vm-templates/sync"
+        hx-post="/admin/vm-templates/sync"
+        hx-target="#vm-templates-panel"
+        hx-swap="outerHTML"
+        class="inline"
+      >
+        <input
+          type="hidden"
+          name="csrf_token"
+          value="{{ csrf_token }}"
+        >
+
+        <button type="submit">
+          Sync Templates
+        </button>
+      </form>
+    </div>
+
+    {% if vm_templates %}
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>VMID</th>
+              <th>Node</th>
+              <th>Name</th>
+              <th>Version</th>
+              <th>OS</th>
+              <th>Approved</th>
+              <th>Created</th>
+              <th>Updated</th>
+              <th>Description</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for template in vm_templates %}
+              <tr>
+                <td>{{ template.vmid }}</td>
+                <td>{{ template.node }}</td>
+                <td>{{ template.name }}</td>
+                <td>{{ template.version or "—" }}</td>
+                <td>{{ template.os or "—" }}</td>
+
+                <td>
+                  {% if template.is_approved %}
+                    Yes
+                  {% else %}
+                    No
+                  {% endif %}
+                </td>
+
+                <td>
+                  {{ template.created_at.strftime("%Y-%m-%d") }}
+                </td>
+
+                <td>
+                  {{ template.updated_at.strftime("%Y-%m-%d") }}
+                </td>
+
+                <td>
+                  {{ template.description or "—" }}
+                </td>
+
+                <td>
+                  {% set action = "disapprove" if template.is_approved else "approve" %}
+
+                  <form
+                    method="post"
+                    action="/admin/vm-templates/{{ template.id }}/{{ action }}"
+                    hx-post="/admin/vm-templates/{{ template.id }}/{{ action }}"
+                    hx-target="#vm-templates-panel"
+                    hx-swap="outerHTML"
+                    class="inline"
+                  >
+                    <input
+                      type="hidden"
+                      name="csrf_token"
+                      value="{{ csrf_token }}"
+                    >
+
+                    <button
+                      type="submit"
+                      {% if template.is_approved %}class="danger"{% endif %}
+                    >
+                      {{ action | capitalize }}
+                    </button>
+                  </form>
+
+                  <a
+                    href="/admin/vm-templates/{{ template.id }}/edit"
+                  >
+                    Edit
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>
+        No VM templates have been discovered yet.
+      </p>
+    {% endif %}
+  </section>
+</div>

@@ -1,11 +1,55 @@
 {% extends "base.html" %}
-{% block title %}Dashboard · {{ app_name }}{% endblock %}
+
+{% block title %}Dashboard{% endblock %}
+
 {% block content %}
-<h1>Dashboard</h1>
-<p>Welcome, {{ user.username }}.</p>
-<div id="dashboard-vms">
-<section class="card">
-  <h2>Virtual Machine Dashboard</h2>
-  <p class="muted">You have no active VMs.</p>
-</section>
+<div class="page">
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h1>My VMs</h1>
+        <p>
+          Your currently provisioned virtual machines.
+        </p>
+      </div>
+    </div>
+
+    {% if user_vms %}
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Template</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for vm in user_vms %}
+              <tr>
+                <td>{{ vm.name }}</td>
+                <td>{{ vm.template.name }}</td>
+                <td>{{ vm.status }}</td>
+                <td>{{ vm.created_at.strftime("%Y-%m-%d") }}</td>
+                <td>
+                  <a href="/vms/{{ vm.id }}">
+                    Open
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p>
+        You have no current VMs.
+        <a href="/add-vm">Create one here.</a>
+      </p>
+    {% endif %}
+  </section>
+</div>
 {% endblock %}

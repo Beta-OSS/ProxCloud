@@ -22,6 +22,7 @@ dependencies = [
     "pyotp>=2.9",
     "cryptography>=43",
     "qrcode>=8.0",
+    "httpx",
 ]
 
 [project.optional-dependencies]

@@ -26,8 +26,19 @@ def me(ctx: AuthCtx) -> MeRead:
 
 
 @router.get("/dashboard")
-def dashboard(request: Request, db: DbSession, ctx: AuthCtx):
-    return render(request, "dashboard.html", user=ctx.user, csrf_token=ctx.session.csrf_token)
+def dashboard(
+    request: Request,
+    ctx: AuthCtx,
+):
+    user_vms = []
+
+    return render(
+        request,
+        "dashboard.html",
+        user=ctx.user,
+        csrf_token=ctx.session.csrf_token,
+        user_vms=user_vms,
+    )
 
 
 def _settings(request: Request, db, ctx, *, message=None, errors=None, setup=None, codes=None, status_code=200):
