@@ -1,16 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Two-factor authentication · {{ app_name }}{% endblock %}
+{% block title %}Verify your identity · {{ app_name }}{% endblock %}
 {% block content %}
-<section class="card narrow">
-  <h1>Two-factor authentication</h1>
-  <p>Enter the 6-digit code from your authenticator app, or a recovery code.</p>
-  {% if error %}<p class="flash err" role="alert">{{ error }}</p>{% endif %}
-  <form method="post" action="/2fa" class="stack">
+<section class="card auth-card">
+  <h1>Verify your identity</h1>
+  <p>Enter the 6-digit code from your authenticator app. If you can't use your app, enter one of your recovery codes instead.</p>
+
+  {% if error %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endif %}
+
+  <form method="post" action="/2fa" class="form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <label>Code
-      <input name="code" autocomplete="one-time-code" required maxlength="64" autofocus>
+    <label class="field">Authentication or recovery code
+      <input class="input-code" name="code" autocomplete="one-time-code" inputmode="text" required maxlength="64" autofocus>
     </label>
-    <button type="submit">Verify</button>
+    <button type="submit" class="btn btn-primary btn-block">Verify</button>
   </form>
+
+  <p class="auth-footer"><a href="/login">Back to sign in</a></p>
 </section>
 {% endblock %}

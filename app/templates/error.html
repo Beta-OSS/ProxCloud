@@ -1,9 +1,20 @@
 {% extends "base.html" %}
-{% block title %}Error · {{ app_name }}{% endblock %}
+{% block title %}{{ code }} · {{ app_name }}{% endblock %}
 {% block content %}
-<section class="card narrow">
-  <h1>{{ code }}</h1>
-  <p>{{ message }}</p>
-  <p><a href="/dashboard">Back to dashboard</a></p>
-</section>
+<div class="page-narrow">
+  <section class="card" style="text-align:center">
+    <p class="error-code">{{ code }}</p>
+    <h1>{{ message }}</h1>
+    <p class="muted" style="margin-top:var(--space-3)">
+      If you think this is a mistake, check the address or return to a page you know.
+    </p>
+    <div class="form-actions" style="justify-content:center;margin-top:var(--space-5)">
+      {% if user %}
+        <a class="btn btn-primary" href="/dashboard">Back to My VMs</a>
+      {% else %}
+        <a class="btn btn-primary" href="/login">Go to sign in</a>
+      {% endif %}
+    </div>
+  </section>
+</div>
 {% endblock %}
