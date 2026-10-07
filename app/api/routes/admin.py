@@ -55,6 +55,29 @@ def _users_view(
         status_code=200 if is_htmx(request) else status_code,
     )
 
+def _vms_view(
+    request: Request,
+    db,
+    ctx,
+    *,
+    message=None,
+    errors=None,
+    form=None,
+    status_code=200,
+):
+    return render(
+        request,
+        "_vms_panel.html" if is_htmx(request) else "admin_vms.html",
+        user=ctx.user,
+        csrf_token=ctx.session.csrf_token,
+        vms=list_vms(db),
+        message=message,
+        errors=errors or [],
+        form=form or {},
+        # htmx does not swap 4xx responses by default, so errors are returned as
+        # 200 for it.
+        status_code=200 if is_htmx(request) else status_code,
+    )
 
 @router.get("/admin")
 def admin_home(request: Request, db: DbSession, ctx: AdminCtx):
@@ -67,10 +90,91 @@ def admin_home(request: Request, db: DbSession, ctx: AdminCtx):
     )
 
 @router.get("/admin/vms")
-async def admin_vms(request: Request, ctx: AdminCtx):
-    result = await sync_vms()
-    return result
+def admin_vms(request: Request, db: DbSession, ctx: AdminCtx):
+    return _vms_view(request, db, ctx)
 
+@router.post("/admin/vms", dependencies=[Depends(csrf_authed)])
+async def admin_sync_vms(
+    request: Request,
+    db: DbSession,
+    ctx: AdminCtx,
+):
+    try:
+        proxmox_vms = await sync_vms()
+
+        created = 0
+        updated = 0
+
+        for proxmox_vm in proxmox_vms:
+            print(proxmox_vm)
+            data = VMCreate(
+                pm_vmid=proxmox_vm["vmid"],
+                pm_node=proxmox_vm["node"],
+                name=proxmox_vm["name"],
+                version=proxmox_vm.get("version"),
+                os=proxmox_vm.get("os"),
+                description="",
+                is_template=True if proxmox_vm["template"] == True else False,
+                is_approved=True if proxmox_vm["template"] == False else False,
+            )
+
+            vm = get_vm_by_proxmox_id(
+                db,
+                pm_node=data.pm_node,
+                pm_vmid=data.pm_vmid,
+            )
+
+            if vm is None:
+                create_vm(db, data)
+                created += 1
+                continue
+
+            # Update fields controlled by Proxmox.
+            vm.name = data.name
+            vm.pm_node = data.pm_node
+            vm.pm_vmid = data.pm_vmid
+            vm.is_template = data.is_template
+            vm.is_active = True
+
+            # Don't overwrite portal/admin-controlled fields:
+            # is_approved
+            # is_archived
+            # version
+            # os
+            # description
+
+            updated += 1
+
+        db.commit()
+
+    except HTTPException as exc:
+        return _vms_view(
+            request,
+            db,
+            ctx,
+            errors=[exc.detail],
+            form=form,
+            status_code=exc.status_code,
+        )
+
+    except ValidationError as exc:
+        errors = [e["msg"].removeprefix("Value error, ") for e in exc.errors()]
+
+        return _vms_view(
+            request,
+            db,
+            ctx,
+            errors=errors,
+            form=form,
+            status_code=400,
+        )
+
+    return _vms_view(
+        request,
+        db,
+        ctx,
+        message=f"VM sync complete: {created} created, {updated} updated.",
+    )
 @router.get("/admin/users")
 def admin_users(request: Request, db: DbSession, ctx: AdminCtx):
     return _users_view(request, db, ctx)

@@ -1,0 +1,154 @@
+<div id="vms-panel">
+  {% if message %}<p class="flash ok" role="status">{{ message }}</p>{% endif %}
+  {% for e in errors %}<p class="flash err" role="alert">{{ e }}</p>{% endfor %}
+
+  <section class="card">
+    <h2>VM Templates</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>PMID</th>
+          <th>Node</th>
+          <th>Name</th>
+          <th>Version</th>
+          <th>OS</th>
+          <th>Approved</th>
+          <th>Created At</th>
+          <th>Last Updated</th>
+          <th>Last Synced</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for vm in vms %}
+        {% if vm.is_template %}
+            <tr>
+                <td>{{ vm.pm_vmid }}</td>
+                <td>{{ vm.pm_node }}</td>
+                <td>{{ vm.name }}</td>
+                <td>{{ vm.version }}</td>
+                <td>{{ vm.os }}</td>
+                <td>{{ "Yes" if vm.is_approved == True else "No" }}</td>
+                <td>{{ vm.created_at.strftime("%Y-%m-%d") }}</td>
+                <td>{{ vm.updated_at.strftime("%Y-%m-%d") }}</td>
+                <td>{{ vm.last_synced_at.strftime("%Y-%m-%d") }}</td>
+                <td>{{ vm.description }}</td>
+                <td>
+                    {% set action = "disapprove" if vm.is_active else "approve" %}
+                    <form
+                        method="post"
+                        action="/admin/vms/{{ vm.id }}/{{ action }}"
+                        hx-post="/admin/vms/{{ vm.id }}/{{ action }}"
+                        hx-target="#vms-panel"
+                        hx-swap="outerHTML"
+                        class="inline"
+                    >
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                        <button
+                        type="submit"
+                        {% if vm.is_approved %}class="danger"{% endif %}
+                        >
+                        {{ action | capitalize }}
+                        </button>
+                    </form>
+
+                    <form
+                        method="post"
+                        action="/admin/vms/{{ vm.id }}/edit"
+                        hx-post="/admin/users/{{ vm.id }}/edit"
+                        hx-target="#vms-panel"
+                        hx-swap="outerHTML"
+                        class="inline"
+                    >
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit">Edit VM</button>
+                    </form>
+                </td>
+            </tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+    {% for vm in vms %}
+      {% if not vm.is_template %}
+        {% set is_vm = True %}
+      {% endif %}
+    {% endfor %}
+    {% if is_vm %}
+    <h2>Investigator VMs</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>PMID</th>
+          <th>Node</th>
+          <th>Name</th>
+          <th>Version</th>
+          <th>OS</th>
+          <th>Created At</th>
+          <th>Last Updated</th>
+          <th>Is Active</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for vm in vms %}
+        {% if not vm.is_template %}
+            <tr>
+                <td>{{ vm.pm_vmid }}</td>
+                <td>{{ vm.pm_node }}</td>
+                <td>{{ vm.name }}</td>
+                <td>{{ vm.version }}</td>
+                <td>{{ vm.os }}</td>
+                <td>{{ vm.created_at.strftime("%Y-%m-%d") }}</td>
+                <td>{{ vm.updated_at.strftime("%Y-%m-%d") }}</td>
+                <td>{{ "Yes" if vm.is_active == True else "No" }}</td>
+                <td>
+                    {% set action = "unarchive" if vm.is_archived else "archive" %}
+                    <form
+                        method="post"
+                        action="/admin/vms/{{ vm.id }}/{{ action }}"
+                        hx-post="/admin/vms/{{ vm.id }}/{{ action }}"
+                        hx-target="#vms-panel"
+                        hx-swap="outerHTML"
+                        class="inline"
+                    >
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                        <button
+                        type="submit"
+                        {% if vm.is_approved %}class="danger"{% endif %}
+                        >
+                        {{ action | capitalize }}
+                        </button>
+                    </form>
+
+                    <form
+                        method="post"
+                        action="/admin/vms/{{ vm.id }}/edit"
+                        hx-post="/admin/users/{{ vm.id }}/edit"
+                        hx-target="#vms-panel"
+                        hx-swap="outerHTML"
+                        class="inline"
+                    >
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit">Edit VM</button>
+                    </form>
+                </td>
+            </tr>
+        {% endif %}
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+        <form method="post" action="/admin/vms" hx-post="/admin/vms" hx-target="#vms-panel"
+                hx-swap="outerHTML"
+                class="inline">
+        <button type="submit">Sync VMs</button>
+    </form>
+  </section>
+  
+</div>
