@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     database_url: str
     session_secret: SecretStr
     totp_encryption_key: SecretStr
-    totp_issuer: str = "Private Cloud Portal"
+    totp_issuer: str = "ProxCloud Portal"
 
     cookie_secure: bool = True
     session_cookie_name: str = "portal_session"
