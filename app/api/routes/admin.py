@@ -19,6 +19,8 @@ from app.services.users import (
     user_counts,
 )
 
+from app.services.vms import sync_vms
+
 # Router-level dependency: every route below requires an authenticated ADMIN,
 # checked server-side.
 router = APIRouter(dependencies=[Depends(require_admin)])
@@ -64,6 +66,10 @@ def admin_home(request: Request, db: DbSession, ctx: AdminCtx):
         user_counts=user_counts(db),
     )
 
+@router.get("/admin/vms")
+def admin_vms(request: Request, ctx: AdminCtx):
+    result = sync_vms()
+    return render(request, ctx, result=result)
 
 @router.get("/admin/users")
 def admin_users(request: Request, db: DbSession, ctx: AdminCtx):
