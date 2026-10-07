@@ -1,54 +1,50 @@
 {% extends "base.html" %}
-
-{% block title %}Dashboard{% endblock %}
-
+{% set active_nav = "dashboard" %}
+{% block title %}My VMs · {{ app_name }}{% endblock %}
 {% block content %}
 <div class="page">
-  <section class="card">
-    <div class="card-header">
-      <div>
-        <h1>My VMs</h1>
-        <p>
-          Your currently provisioned virtual machines.
-        </p>
-      </div>
+  <header class="page-header">
+    <div>
+      <h1>My VMs</h1>
+      <p>Your provisioned virtual machines.</p>
     </div>
+    <div class="page-header-actions">
+      <a class="btn btn-primary" href="/add-vm">Create VM</a>
+    </div>
+  </header>
 
+  <section class="card card-flush" aria-label="Virtual machines">
     {% if user_vms %}
-      <div class="table-container">
+      <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Template</th>
-              <th>Status</th>
-              <th>Created</th>
-              <th>Actions</th>
+              <th scope="col">Name</th>
+              <th scope="col">Template</th>
+              <th scope="col">Status</th>
+              <th scope="col">Created</th>
+              <th scope="col"><span class="sr-only">Actions</span></th>
             </tr>
           </thead>
-
           <tbody>
             {% for vm in user_vms %}
               <tr>
-                <td>{{ vm.name }}</td>
+                <td><a href="/vms/{{ vm.id }}"><strong>{{ vm.name }}</strong></a></td>
                 <td>{{ vm.template.name }}</td>
-                <td>{{ vm.status }}</td>
+                <td><span class="badge status status-{{ vm.status | lower }}">{{ vm.status | capitalize }}</span></td>
                 <td>{{ vm.created_at.strftime("%Y-%m-%d") }}</td>
-                <td>
-                  <a href="/vms/{{ vm.id }}">
-                    Open
-                  </a>
-                </td>
+                <td><a class="btn btn-secondary btn-sm" href="/vms/{{ vm.id }}">Open</a></td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
       </div>
     {% else %}
-      <p>
-        You have no current VMs.
-        <a href="/add-vm">Create one here.</a>
-      </p>
+      <div class="empty">
+        <h2>No virtual machines yet</h2>
+        <p>Pick an approved template and your first VM will appear here.</p>
+        <a class="btn btn-primary" href="/add-vm">Create a VM</a>
+      </div>
     {% endif %}
   </section>
 </div>

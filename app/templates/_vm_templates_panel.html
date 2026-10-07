@@ -1,118 +1,61 @@
 <div id="vm-templates-panel">
-  {% if message %}
-    <p class="flash ok" role="status">{{ message }}</p>
-  {% endif %}
+  {% if message %}<div class="alert alert-success" role="status">{{ message }}</div>{% endif %}
+  {% for error in errors %}<div class="alert alert-danger" role="alert">{{ error }}</div>{% endfor %}
 
-  {% for error in errors %}
-    <p class="flash err" role="alert">{{ error }}</p>
-  {% endfor %}
-
-  <section class="card">
+  <section class="card card-flush" aria-label="VM templates">
     <div class="card-header">
       <div>
-        <h2>VM Templates</h2>
-        <p>
-          Manage the Proxmox VM templates available for deployment.
-        </p>
+        <h2>Discovered templates</h2>
+        <p>Only approved templates appear on the Create VM page.</p>
       </div>
-
-      <form
-        method="post"
-        action="/admin/vm-templates/sync"
-        hx-post="/admin/vm-templates/sync"
-        hx-target="#vm-templates-panel"
-        hx-swap="outerHTML"
-        class="inline"
-      >
-        <input
-          type="hidden"
-          name="csrf_token"
-          value="{{ csrf_token }}"
-        >
-
-        <button type="submit">
-          Sync Templates
-        </button>
+      <form method="post" action="/admin/vm-templates/sync"
+            hx-post="/admin/vm-templates/sync" hx-target="#vm-templates-panel" hx-swap="outerHTML" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn btn-primary">Sync from Proxmox</button>
       </form>
     </div>
 
     {% if vm_templates %}
-      <div class="table-container">
+      <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>VMID</th>
-              <th>Node</th>
-              <th>Name</th>
-              <th>Version</th>
-              <th>OS</th>
-              <th>Approved</th>
-              <th>Created</th>
-              <th>Updated</th>
-              <th>Description</th>
-              <th>Actions</th>
+              <th scope="col">VMID</th>
+              <th scope="col">Node</th>
+              <th scope="col">Name</th>
+              <th scope="col">Version</th>
+              <th scope="col">OS</th>
+              <th scope="col">Status</th>
+              <th scope="col">Created</th>
+              <th scope="col">Updated</th>
+              <th scope="col">Description</th>
+              <th scope="col"><span class="sr-only">Actions</span></th>
             </tr>
           </thead>
-
           <tbody>
             {% for template in vm_templates %}
               <tr>
-                <td>{{ template.vmid }}</td>
+                <td class="cell-mono">{{ template.vmid }}</td>
                 <td>{{ template.node }}</td>
-                <td>{{ template.name }}</td>
+                <td><strong>{{ template.name }}</strong></td>
                 <td>{{ template.version or "—" }}</td>
                 <td>{{ template.os or "—" }}</td>
-
                 <td>
-                  {% if template.is_approved %}
-                    Yes
-                  {% else %}
-                    No
-                  {% endif %}
+                  {% if template.is_approved %}<span class="badge badge-success">Approved</span>{% else %}<span class="badge badge-neutral">Not approved</span>{% endif %}
                 </td>
-
-                <td>
-                  {{ template.created_at.strftime("%Y-%m-%d") }}
-                </td>
-
-                <td>
-                  {{ template.updated_at.strftime("%Y-%m-%d") }}
-                </td>
-
-                <td>
-                  {{ template.description or "—" }}
-                </td>
-
+                <td>{{ template.created_at.strftime("%Y-%m-%d") }}</td>
+                <td>{{ template.updated_at.strftime("%Y-%m-%d") }}</td>
+                <td class="cell-wrap">{{ template.description or "—" }}</td>
                 <td>
                   {% set action = "disapprove" if template.is_approved else "approve" %}
-
-                  <form
-                    method="post"
-                    action="/admin/vm-templates/{{ template.id }}/{{ action }}"
-                    hx-post="/admin/vm-templates/{{ template.id }}/{{ action }}"
-                    hx-target="#vm-templates-panel"
-                    hx-swap="outerHTML"
-                    class="inline"
-                  >
-                    <input
-                      type="hidden"
-                      name="csrf_token"
-                      value="{{ csrf_token }}"
-                    >
-
-                    <button
-                      type="submit"
-                      {% if template.is_approved %}class="danger"{% endif %}
-                    >
-                      {{ action | capitalize }}
-                    </button>
-                  </form>
-
-                  <a
-                    href="/admin/vm-templates/{{ template.id }}/edit"
-                  >
-                    Edit
-                  </a>
+                  <div class="actions">
+                    <form method="post" action="/admin/vm-templates/{{ template.id }}/{{ action }}"
+                          hx-post="/admin/vm-templates/{{ template.id }}/{{ action }}" hx-target="#vm-templates-panel" hx-swap="outerHTML" class="inline">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <button type="submit" class="btn btn-sm {{ 'btn-danger-outline' if template.is_approved else 'btn-primary' }}">{{ action | capitalize }}</button>
+                    </form>
+                    <a class="btn btn-secondary btn-sm" href="/admin/vm-templates/{{ template.id }}/edit">Edit</a>
+                  </div>
                 </td>
               </tr>
             {% endfor %}
@@ -120,9 +63,10 @@
         </table>
       </div>
     {% else %}
-      <p>
-        No VM templates have been discovered yet.
-      </p>
+      <div class="empty">
+        <h2>No templates discovered yet</h2>
+        <p>Sync from Proxmox to import the VM templates available on your nodes.</p>
+      </div>
     {% endif %}
   </section>
 </div>

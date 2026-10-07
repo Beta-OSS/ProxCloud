@@ -1,6 +1,14 @@
 {% extends "base.html" %}
-{% block title %}VM Templates · {{ app_name }}{% endblock %}
+{% set active_nav = "vm_templates" %}
+{% block title %}VM templates · {{ app_name }}{% endblock %}
 {% block content %}
-<h1>VMs</h1>
-{% include "_vm_templates_panel.html" %}
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1>VM templates</h1>
+      <p>Choose which Proxmox templates users can deploy.</p>
+    </div>
+  </header>
+  {% include "_vm_templates_panel.html" %}
+</div>
 {% endblock %}
