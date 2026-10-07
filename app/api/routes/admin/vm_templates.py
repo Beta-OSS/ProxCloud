@@ -1,12 +1,18 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
+import uuid
 
-from app.core.dependencies import AdminCtx, DbSession, csrf_authed, require_admin
+from app.core.dependencies import (
+    AdminCtx,
+    DbSession,
+    csrf_authed,
+    require_admin,
+)
 from app.core.templating import is_htmx, render
 from app.services.vm_templates import (
+    approve_vm_template,
+    disapprove_vm_template,
     list_vm_templates,
-    sync_vm_templates,
 )
-
 
 router = APIRouter(prefix="/admin/vm-templates", dependencies=[Depends(require_admin)],)
 api_router = APIRouter(prefix="/api/admin/vm-templates", dependencies=[Depends(require_admin)],)
@@ -77,4 +83,61 @@ async def sync_vm_templates_route(
             f"{result['created']} created, "
             f"{result['updated']} updated."
         ),
+    )
+
+@router.post(
+    "/{template_id}/approve",
+    dependencies=[Depends(csrf_authed)],
+)
+def approve_vm_template_route(
+    request: Request,
+    template_id: uuid.UUID,
+    db: DbSession,
+    ctx: AdminCtx,
+):
+    template = approve_vm_template(
+        db,
+        template_id,
+    )
+
+    if template is None:
+        raise HTTPException(
+            status_code=404,
+            detail="VM template not found.",
+        )
+
+    return _vm_templates_view(
+        request,
+        db,
+        ctx,
+        message=f"VM template '{template.name}' approved.",
+    )
+
+
+@router.post(
+    "/{template_id}/disapprove",
+    dependencies=[Depends(csrf_authed)],
+)
+def disapprove_vm_template_route(
+    request: Request,
+    template_id: uuid.UUID,
+    db: DbSession,
+    ctx: AdminCtx,
+):
+    template = disapprove_vm_template(
+        db,
+        template_id,
+    )
+
+    if template is None:
+        raise HTTPException(
+            status_code=404,
+            detail="VM template not found.",
+        )
+
+    return _vm_templates_view(
+        request,
+        db,
+        ctx,
+        message=f"VM template '{template.name}' disapproved.",
     )

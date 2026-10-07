@@ -138,3 +138,40 @@ async def sync_vm_templates(db: Session) -> dict[str, int]:
         "created": created,
         "updated": updated,
     }
+
+def approve_vm_template(
+    db: Session,
+    template_id: uuid.UUID,
+) -> VMTemplate | None:
+    """Approve a VM template for user deployment."""
+
+    template = get_vm_template(db, template_id)
+
+    if template is None:
+        return None
+
+    template.is_approved = True
+
+    db.commit()
+    db.refresh(template)
+
+    return template
+
+
+def disapprove_vm_template(
+    db: Session,
+    template_id: uuid.UUID,
+) -> VMTemplate | None:
+    """Remove approval from a VM template."""
+
+    template = get_vm_template(db, template_id)
+
+    if template is None:
+        return None
+
+    template.is_approved = False
+
+    db.commit()
+    db.refresh(template)
+
+    return template
