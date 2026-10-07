@@ -6,10 +6,6 @@ ProxCloud is an open-source web platform for deploying isolated virtual machines
 
 The project puts a simple web interface between users and the underlying Proxmox infrastructure, allowing users to provision and access virtual machines without requiring direct access to Proxmox itself.
 
-## The ProxCloud Dashboard
-
-The dashboard is the central interface for users. It provides a single place to view their current virtual machines and access the workflow for creating new environments.
-
 <p align="center">
   <img
     width="1220"
@@ -22,6 +18,8 @@ The dashboard is the central interface for users. It provides a single place to 
 <p align="center">
   <em>The ProxCloud user dashboard — the central interface for managing and accessing virtual environments.</em>
 </p>
+
+The dashboard is the central interface for users. It provides a single place to view their current virtual machines and access the workflow for creating new environments.
 
 From the dashboard, users can see the environments assigned to them and begin the process of creating a new VM from an approved template.
 
