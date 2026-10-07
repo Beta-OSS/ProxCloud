@@ -12,6 +12,7 @@ from app.services.vm_templates import (
     approve_vm_template,
     disapprove_vm_template,
     list_vm_templates,
+    sync_vm_templates,
 )
 
 router = APIRouter(prefix="/admin/vm-templates", dependencies=[Depends(require_admin)],)
