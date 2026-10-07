@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Admin · {{ app_name }}{% endblock %}
+{% block content %}
+<h1>Administration</h1>
+<section class="card">
+  <h2>Users</h2>
+  <p>{{ user_counts.total }} total · {{ user_counts.active }} active · {{ user_counts.admins }} administrators</p>
+  <p><a href="/admin/users">Manage users</a></p>
+  <h2>VMs</h2>
+  <p>{{ vm_counts.total }} total · {{ vm_counts.active }} running · {{ vm_counts.approved }} approved</p>
+  <p><a href="/admin/vms">Manage VMs</a></p>
+</section>
+{% endblock %}

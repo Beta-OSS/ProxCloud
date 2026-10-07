@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Settings · {{ app_name }}{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+{% if message %}<p class="flash ok" role="status">{{ message }}</p>{% endif %}
+{% for e in errors %}<p class="flash err" role="alert">{{ e }}</p>{% endfor %}
+
+<section class="card">
+  <h2>Account</h2>
+  <p>Username: <strong>{{ user.username }}</strong><br>Email: {{ user.email }}<br>Role: {{ "Administrator" if user.is_admin else "User" }}</p>
+</section>
+
+<section class="card">
+  <h2>Change password</h2>
+  <form method="post" action="/settings/password" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>Current password <input type="password" name="current_password" autocomplete="current-password" required maxlength="1024"></label>
+    <label>New password (12+ characters) <input type="password" name="new_password" autocomplete="new-password" required minlength="12" maxlength="128"></label>
+    <button type="submit">Update password</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Two-factor authentication</h2>
+
+  {% if recovery_codes %}
+  <div class="flash ok">
+    <p><strong>Save these recovery codes now.</strong> Each works once. They will not be shown again.</p>
+    <ul class="codes">{% for c in recovery_codes %}<li><code>{{ c }}</code></li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  {% if user.totp_enabled %}
+    <p>Status: <strong>enabled</strong>. Unused recovery codes: {{ remaining }}.</p>
+    <h3>Generate new recovery codes</h3>
+    <form method="post" action="/settings/2fa/recovery-codes" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>Password <input type="password" name="password" autocomplete="current-password" required maxlength="1024"></label>
+      <label>Authenticator code <input name="code" autocomplete="one-time-code" required maxlength="6"></label>
+      <button type="submit">Regenerate</button>
+    </form>
+    <h3>Disable</h3>
+    <form method="post" action="/settings/2fa/disable" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>Password <input type="password" name="password" autocomplete="current-password" required maxlength="1024"></label>
+      <label>Authenticator code <input name="code" autocomplete="one-time-code" required maxlength="6"></label>
+      <button type="submit" class="danger">Disable 2FA</button>
+    </form>
+  {% elif setup %}
+    <p>Scan the QR code with an authenticator app, or enter the key manually.</p>
+    <img src="{{ setup.qr }}" alt="TOTP QR code" width="200" height="200">
+    <p>Key: <code id="totp-secret">{{ setup.secret }}</code></p>
+    <form method="post" action="/settings/2fa/enable" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>Code from the app <input name="code" autocomplete="one-time-code" required maxlength="6"></label>
+      <button type="submit">Confirm and enable</button>
+    </form>
+  {% else %}
+    <p>Status: <strong>not enabled</strong>.</p>
+    <form method="post" action="/settings/2fa/setup">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit">Set up 2FA</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

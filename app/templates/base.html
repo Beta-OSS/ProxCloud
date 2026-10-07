@@ -7,17 +7,25 @@
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
   <link rel="stylesheet" href="/static/app.css">
   <script src="/static/htmx.min.js" defer></script>
+  <script src="/static/app.js" defer></script>
 </head>
 <body{% if csrf_token %} hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'{% endif %}>
   <header class="topbar">
     <a class="brand" href="/dashboard">{{ app_name }}</a>
+    {% if user %}
     <nav>
       <a href="/dashboard">Dashboard</a>
+      <a href="/settings">Settings</a>
+      {% if user.is_admin %}
+      <a href="/admin">Admin Panel</a>
+      <a href="/admin/users">Manage Users</a>
+      {% endif %}
     </nav>
     <form method="post" action="/logout" class="inline">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <button type="submit" class="link">Log out ({{ user.username }})</button>
     </form>
+    {% endif %}
   </header>
   <main>{% block content %}{% endblock %}</main>
 </body>
