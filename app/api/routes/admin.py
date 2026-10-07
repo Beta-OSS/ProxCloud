@@ -62,7 +62,6 @@ def admin_home(request: Request, db: DbSession, ctx: AdminCtx):
         user=ctx.user,
         csrf_token=ctx.session.csrf_token,
         user_counts=user_counts(db),
-        vm_counts=vm_counts(db),
     )
 
 

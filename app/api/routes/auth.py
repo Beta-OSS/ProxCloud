@@ -85,4 +85,43 @@ def login_submit(
     return response
 
 
+@router.get("/2fa")
+def twofa_page(request: Request, ctx: PendingCtx):
+    return render(request, "twofa.html", csrf_token=ctx.session.csrf_token)
 
+
+@router.post("/2fa", dependencies=[Depends(csrf_pending)])
+def twofa_submit(request: Request, db: DbSession, ctx: PendingCtx, code: Annotated[str, Form()] = ""):
+    s = get_settings()
+    ip = client_ip(request)
+    if rate_limit.is_blocked(db, ctx.user.username, ip):
+        destroy_session(db, request.cookies[s.session_cookie_name])
+        return _login_page(request, error="Too many failed attempts. Please try again later.", status_code=429)
+
+    if verify_second_factor(db, ctx.user, code):
+        destroy_session(db, request.cookies[s.session_cookie_name])
+        token, _ = create_session(db, ctx.user, STAGE_ACTIVE, ip, request.headers.get("user-agent"))
+        response = RedirectResponse("/dashboard", status_code=303)
+        _set_session_cookie(response, token)
+        return response
+
+    rate_limit.record_attempt(db, ctx.user.username, ip, False)
+    ctx.session.failed_attempts += 1
+    db.commit()
+    if ctx.session.failed_attempts >= s.twofa_max_attempts:
+        destroy_session(db, request.cookies[s.session_cookie_name])
+        return _login_page(request, error="Too many incorrect codes. Please sign in again.", status_code=401)
+    return render(
+        request, "twofa.html", csrf_token=ctx.session.csrf_token, error="Invalid code.", status_code=401
+    )
+
+
+@router.post("/logout", dependencies=[Depends(csrf_authed)])
+def logout(request: Request, db: DbSession):
+    s = get_settings()
+    token = request.cookies.get(s.session_cookie_name)
+    if token:
+        destroy_session(db, token)
+    response = RedirectResponse("/login", status_code=303)
+    response.delete_cookie(s.session_cookie_name, path="/")
+    return response
