@@ -27,3 +27,87 @@ th, td { text-align:left; padding:.5rem; border-bottom:1px solid var(--border); 
 .codes { columns:2; font-family:ui-monospace, monospace; list-style:none; padding:0; }
 code { font-family:ui-monospace, monospace; }
 .muted { opacity:.7; }
+
+.password-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.65);
+  padding: 1rem;
+}
+
+.password-modal {
+  position: relative;
+
+  width: min(500px, 100%);
+  padding: 2rem;
+
+  background: var(--card-background, #fff);
+  border-radius: 10px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.password-modal h2 {
+  margin-top: 0;
+  padding-right: 2rem;
+}
+
+.password-modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+
+  width: 2rem;
+  height: 2rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  background: transparent;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.password-modal-close:hover {
+  opacity: 0.7;
+}
+
+.password-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  margin: 1.5rem 0;
+  padding: 1rem;
+
+  border-radius: 6px;
+  background: var(--input-background, #f3f3f3);
+}
+
+.password-display code {
+  flex: 1;
+
+  font-size: 1.1rem;
+  font-family: monospace;
+
+  word-break: break-all;
+}
+
+.warning {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.password-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
