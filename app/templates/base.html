@@ -14,6 +14,10 @@
     <nav>
       <a href="/dashboard">Dashboard</a>
     </nav>
+    <form method="post" action="/logout" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit" class="link">Log out ({{ user.username }})</button>
+    </form>
   </header>
   <main>{% block content %}{% endblock %}</main>
 </body>

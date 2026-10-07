@@ -17,6 +17,11 @@ dependencies = [
     "pydantic[email]>=2.9",
     "pydantic-settings>=2.6",
     "jinja2>=3.1",
+    "python-multipart>=0.0.12",
+    "argon2-cffi>=23.1",
+    "pyotp>=2.9",
+    "cryptography>=43",
+    "qrcode>=8.0",
 ]
 
 [project.optional-dependencies]
