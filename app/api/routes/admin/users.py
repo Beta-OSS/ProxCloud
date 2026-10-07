@@ -21,7 +21,7 @@ from app.schemas.user import (
 from app.services.users import (
     UserExists,
     change_password,
-    create_user,
+    create_user as create_user_service,
     get_user,
     list_users,
     set_active,
@@ -85,7 +85,7 @@ def create_user(
             password=password,
             is_admin=is_admin is not None,
         )
-        create_user(db, data)
+        create_user_service(db, data)
 
     except ValidationError as exc:
         errors = [
