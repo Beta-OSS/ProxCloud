@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.routes import users
+from app.api.routes import admin, auth, users
 from app.core.config import get_settings
 from app.core.templating import BASE_DIR, render
 
@@ -35,6 +35,19 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json" if s.enable_api_docs else None,
     )
 
+    @app.middleware("http")
+    async def security_headers(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Content-Security-Policy"] = CSP
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        if s.cookie_secure:
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        if not request.url.path.startswith("/static"):
+            response.headers["Cache-Control"] = "no-store"
+        return response
+
     @app.exception_handler(StarletteHTTPException)
     async def http_exception_handler(request: Request, exc: StarletteHTTPException):
         if request.url.path.startswith("/api/"):
@@ -59,7 +72,10 @@ def create_app() -> FastAPI:
         return {"status": "ok"}
 
     app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
+    for module in (auth, users, admin):
+        app.include_router(module.router)
     app.include_router(users.api_router)
+    app.include_router(admin.api_router)
     return app
 
 

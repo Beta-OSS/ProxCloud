@@ -1,0 +1,130 @@
+<div id="users-panel">
+  {% if message %}<p class="flash ok" role="status">{{ message }}</p>{% endif %}
+  {% for e in errors %}<p class="flash err" role="alert">{{ e }}</p>{% endfor %}
+
+  <section class="card">
+    <h2>Create user</h2>
+    <form method="post" action="/admin/users" hx-post="/admin/users" hx-target="#users-panel" hx-swap="outerHTML" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label>Username <input name="username" value="{{ form.get('username', '') }}" required minlength="3" maxlength="32" autocomplete="off"></label>
+      <label>Email <input type="email" name="email" value="{{ form.get('email', '') }}" required maxlength="320" autocomplete="off"></label>
+      <label>Initial password (12+ characters) <input type="password" name="password" required minlength="12" maxlength="128" autocomplete="new-password"></label>
+      <label class="check"><input type="checkbox" name="is_admin" value="1"{% if form.get('is_admin') %} checked{% endif %}> Administrator</label>
+      <button type="submit">Create user</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>2FA</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+      {% for u in users %}
+        <tr>
+          <td>{{ u.username }}</td>
+          <td>{{ u.email }}</td>
+          <td>{{ "Admin" if u.is_admin else "User" }}</td>
+          <td>{{ "Active" if u.is_active else "Deactivated" }}</td>
+          <td>{{ "On" if u.totp_enabled else "Off" }}</td>
+          <td>{{ u.created_at.strftime("%Y-%m-%d") }}</td>
+
+          <td>
+            {% if u.id != user.id %}
+
+              {% set action = "deactivate" if u.is_active else "reactivate" %}
+
+              <form
+                method="post"
+                action="/admin/users/{{ u.id }}/{{ action }}"
+                hx-post="/admin/users/{{ u.id }}/{{ action }}"
+                hx-target="#users-panel"
+                hx-swap="outerHTML"
+                class="inline"
+              >
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                <button
+                  type="submit"
+                  {% if u.is_active %}class="danger"{% endif %}
+                >
+                  {{ action | capitalize }}
+                </button>
+              </form>
+
+              <form
+                method="post"
+                action="/admin/users/{{ u.id }}/reset-password"
+                hx-post="/admin/users/{{ u.id }}/reset-password"
+                hx-target="#users-panel"
+                hx-swap="outerHTML"
+                class="inline"
+              >
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit">Reset Password</button>
+              </form>
+
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  
+      {% if reset_password %}
+<div class="password-modal-backdrop" id="password-reset-modal">
+  <div
+    class="password-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="password-reset-title"
+  >
+    <button
+      type="button"
+      class="password-modal-close"
+      id="password-reset-close"
+      aria-label="Close"
+    >
+      &times;
+    </button>
+
+    <h2 id="password-reset-title">Password Reset</h2>
+
+    <p>
+      A new password has been generated for
+      <strong>{{ reset_password.username }}</strong>.
+    </p>
+
+    <div class="password-display">
+      <code id="generated-password">{{ reset_password.password }}</code>
+
+      <button type="button" id="copy-generated-password">
+        Copy
+      </button>
+    </div>
+
+    <p class="warning">
+      Make sure you give this password to the user before closing this window.
+      It will not be shown again.
+    </p>
+
+    <div class="password-modal-actions">
+      <button type="button" id="password-reset-done">
+        Done
+      </button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+</div>
