@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · {{ app_name }}{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<p>Welcome, {{ user.username }}.</p>
+<div id="dashboard-vms">
+<section class="card">
+  <h2>Virtual Machine Dashboard</h2>
+  <p class="muted">You have no active VMs.</p>
+</section>
+{% endblock %}

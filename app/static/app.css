@@ -1,0 +1,29 @@
+:root { --fg:#1b1f24; --bg:#f6f7f9; --card:#fff; --accent:#2563eb; --border:#d8dce2; --err:#b42318; --ok:#067647; }
+@media (prefers-color-scheme: dark) {
+  :root { --fg:#e6e8eb; --bg:#14171a; --card:#1d2125; --accent:#6ea8fe; --border:#33393f; --err:#ff8a80; --ok:#5fd39a; }
+}
+* { box-sizing: border-box; }
+body { margin:0; font:16px/1.5 system-ui, sans-serif; color:var(--fg); background:var(--bg); }
+.topbar { display:flex; gap:1.5rem; align-items:center; padding:.75rem 1.5rem; background:var(--card); border-bottom:1px solid var(--border); }
+.topbar nav { display:flex; gap:1rem; flex:1; }
+.brand { font-weight:700; text-decoration:none; color:var(--fg); }
+a { color:var(--accent); }
+main { max-width:1480px; margin:1.5rem auto; padding:0 1rem; }
+.card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:1rem 1.25rem; margin-bottom:1rem; }
+.narrow { max-width:380px; margin:3rem auto; }
+.stack { display:flex; flex-direction:column; gap:.75rem; }
+label { display:flex; flex-direction:column; gap:.25rem; font-size:.9rem; }
+label.check { flex-direction:row; align-items:center; gap:.5rem; }
+input:not([type=checkbox]) { padding:.5rem; border:1px solid var(--border); border-radius:6px; background:var(--bg); color:var(--fg); font:inherit; }
+button { padding:.5rem .9rem; border:0; border-radius:6px; background:var(--accent); color:#fff; font:inherit; cursor:pointer; }
+button.link { background:none; color:var(--accent); padding:0; }
+button.danger { background:var(--err); }
+form.inline { display:inline; margin:0; }
+table { width:100%; border-collapse:collapse; }
+th, td { text-align:left; padding:.5rem; border-bottom:1px solid var(--border); font-size:.92rem; }
+.flash { padding:.5rem .75rem; border-radius:6px; border:1px solid var(--border); }
+.flash.err { color:var(--err); border-color:var(--err); }
+.flash.ok { color:var(--ok); border-color:var(--ok); }
+.codes { columns:2; font-family:ui-monospace, monospace; list-style:none; padding:0; }
+code { font-family:ui-monospace, monospace; }
+.muted { opacity:.7; }
