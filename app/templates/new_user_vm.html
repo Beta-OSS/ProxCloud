@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Add VM{% endblock %}
+
+{% block content %}
+<div class="page">
+  <section class="card">
+    <div class="card-header">
+      <div>
+        <h1>Create a VM</h1>
+        <p>
+          Choose an approved template to create your virtual machine.
+        </p>
+      </div>
+    </div>
+
+    {% if vm_templates %}
+      <div class="template-grid">
+        {% for template in vm_templates %}
+          <article class="card template-card">
+            <div>
+              <h2>{{ template.name }}</h2>
+
+              {% if template.description %}
+                <p>{{ template.description }}</p>
+              {% endif %}
+            </div>
+            <div>
+              <p>Operating System: {{ template.os or "Not specified" }}</p>
+            </div>
+
+            <div>
+              <p>Version: {{ template.version or "Not specified" }}</p>
+            </div>
+
+            <div class="template-actions">
+              <button
+                type="button"
+                disabled
+                title="VM deployment is not yet implemented"
+              >
+                Clone
+              </button>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div>
+        <h2>No templates available</h2>
+        <p>
+          There are currently no approved VM templates available
+          for deployment.
+        </p>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

@@ -175,3 +175,17 @@ def disapprove_vm_template(
     db.refresh(template)
 
     return template
+
+def list_approved_vm_templates(
+    db: Session,
+) -> list[VMTemplate]:
+    return list(
+        db.scalars(
+            select(VMTemplate)
+            .where(VMTemplate.is_approved.is_(True))
+            .order_by(
+                VMTemplate.name,
+                VMTemplate.version,
+            )
+        )
+    )

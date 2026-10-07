@@ -4,8 +4,9 @@ from fastapi.responses import JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.routes import auth, users
+from app.api.routes import auth, users, new_user_vm
 from app.api.routes.admin import admin, users as admin_users, vm_templates
+
 from app.core.config import get_settings
 from app.core.templating import BASE_DIR, render
 
@@ -133,6 +134,7 @@ def create_app() -> FastAPI:
     # Public/user routes.
     app.include_router(auth.router)
     app.include_router(users.router)
+    app.include_router(new_user_vm.router)
 
     # Admin HTML routes.
     app.include_router(admin.router)
@@ -142,6 +144,7 @@ def create_app() -> FastAPI:
     # Admin JSON API routes.
     app.include_router(admin_users.api_router)
     app.include_router(vm_templates.api_router)
+    
 
     return app
 
