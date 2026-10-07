@@ -6,8 +6,6 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.models.vm import VirtualMachine
-from app.schemas.vm import VMCreate
 
 import os
 from typing import Any
@@ -88,6 +86,6 @@ async def sync_vms() -> list[dict[str, Any]]:
                         "template": True,
                     }
                 )
-
+    
     return templates
 

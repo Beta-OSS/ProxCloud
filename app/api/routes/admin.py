@@ -67,9 +67,9 @@ def admin_home(request: Request, db: DbSession, ctx: AdminCtx):
     )
 
 @router.get("/admin/vms")
-def admin_vms(request: Request, ctx: AdminCtx):
-    result = sync_vms()
-    return render(request, ctx, result=result)
+async def admin_vms(request: Request, ctx: AdminCtx):
+    result = await sync_vms()
+    return result
 
 @router.get("/admin/users")
 def admin_users(request: Request, db: DbSession, ctx: AdminCtx):
