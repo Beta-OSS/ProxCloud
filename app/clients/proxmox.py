@@ -1,26 +1,20 @@
 from __future__ import annotations
 
-import uuid
-
-from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-
-
 import os
 from typing import Any
 
 import httpx
-from fastapi import APIRouter, HTTPException
 
-router = APIRouter(prefix="/api/vms", tags=["vms"])
 
 PROXMOX_URL = os.environ["PROXMOX_URL"].rstrip("/")
 PROXMOX_TOKEN_ID = os.environ["PROXMOX_TOKEN_ID"]
 PROXMOX_TOKEN_SECRET = os.environ["PROXMOX_TOKEN_SECRET"]
 
 # Set to "false" if you are using a certificate that the VM does not trust.
-PROXMOX_VERIFY_SSL = os.getenv("PROXMOX_VERIFY_SSL", "true").lower() == "true"
+PROXMOX_VERIFY_SSL = (
+    os.getenv("PROXMOX_VERIFY_SSL", "true").lower() == "true"
+)
+
 
 def proxmox_headers() -> dict[str, str]:
     """Return authentication headers for the Proxmox API."""
@@ -29,6 +23,7 @@ def proxmox_headers() -> dict[str, str]:
             f"PVEAPIToken={PROXMOX_TOKEN_ID}={PROXMOX_TOKEN_SECRET}"
         )
     }
+
 
 async def proxmox_get(path: str) -> Any:
     """Perform a GET request against the Proxmox API."""
@@ -47,33 +42,30 @@ async def proxmox_get(path: str) -> Any:
 
     return response.json()["data"]
 
-async def sync_vms() -> list[dict[str, Any]]:
+
+async def get_nodes() -> list[dict[str, Any]]:
+    """Return all nodes from the Proxmox cluster."""
+    return await proxmox_get("/nodes")
+
+
+async def get_node_vms(
+    node: str,
+) -> list[dict[str, Any]]:
+    """Return all QEMU VMs on a Proxmox node."""
+    return await proxmox_get(f"/nodes/{node}/qemu")
+
+
+async def get_vm_templates() -> list[dict[str, Any]]:
     """
-    Return all Proxmox VMs that are configured as templates.
+    Return all Proxmox QEMU VMs configured as templates.
     """
-    
-    try:
-        nodes = await proxmox_get("/nodes")
-    except httpx.HTTPError as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Unable to contact Proxmox API",
-        ) from exc
+    nodes = await get_nodes()
 
     templates: list[dict[str, Any]] = []
 
     for node in nodes:
-        
         node_name = node["node"]
-        try:
-            vms = await proxmox_get(
-                f"/nodes/{node_name}/qemu"
-            )
-        except httpx.HTTPError as exc:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Unable to query Proxmox node {node_name}",
-            ) from exc
+        vms = await get_node_vms(node_name)
 
         for vm in vms:
             if vm.get("template") == 1:
@@ -82,10 +74,7 @@ async def sync_vms() -> list[dict[str, Any]]:
                         "node": node_name,
                         "vmid": vm["vmid"],
                         "name": vm.get("name"),
-                        "status": vm.get("status"),
-                        "template": True,
                     }
                 )
-    
-    return templates
 
+    return templates
