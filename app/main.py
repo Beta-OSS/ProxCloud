@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.routes import auth, users, new_user_vm
-from app.api.routes.admin import base_admin as admin, users as admin_users, vm_templates
+from app.api.routes.admin import admin, users as admin_users, vm_templates
 
 from app.core.config import get_settings
 from app.core.templating import BASE_DIR, render
