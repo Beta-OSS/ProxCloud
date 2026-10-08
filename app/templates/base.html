@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/htmx.min.js" defer></script>
+  <script src="/static/app.js" defer></script>
+</head>
+{#- Child templates highlight a nav item with: {% set active_nav = "dashboard" %} -#}
+{%- set nav = active_nav | default("") -%}
+<body class="{{ 'has-shell' if user else 'is-bare' }}"{% if csrf_token %} hx-headers='{"X-CSRF-Token": "{{ csrf_token }}"}'{% endif %}>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  {% if user %}
+  <aside class="sidebar">
+    <a class="brand" href="/dashboard"><span class="brand-mark" aria-hidden="true"></span>{{ app_name }}</a>
+
+    <nav class="nav" aria-label="Main">
+      <div class="nav-group">
+        <p class="nav-heading">Virtual machines</p>
+        <a class="nav-link" href="/dashboard"{% if nav == "dashboard" %} aria-current="page"{% endif %}>My VMs</a>
+        <a class="nav-link" href="/add-vm"{% if nav == "add_vm" %} aria-current="page"{% endif %}>Create VM</a>
+      </div>
+
+      <div class="nav-group">
+        <p class="nav-heading">Account</p>
+        <a class="nav-link" href="/settings"{% if nav == "settings" %} aria-current="page"{% endif %}>Settings</a>
+      </div>
+
+      {% if user.is_admin %}
+      <div class="nav-group">
+        <p class="nav-heading">Administration</p>
+        <a class="nav-link" href="/admin"{% if nav == "admin" %} aria-current="page"{% endif %}>Overview</a>
+        <a class="nav-link" href="/admin/users"{% if nav == "users" %} aria-current="page"{% endif %}>Users</a>
+        <a class="nav-link" href="/admin/vm-templates"{% if nav == "vm_templates" %} aria-current="page"{% endif %}>VM Templates</a>
+      </div>
+      {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+      <div>
+        <div class="sidebar-user">{{ user.username }}</div>
+        <div class="sidebar-role">{{ "Administrator" if user.is_admin else "User" }}</div>
+      </div>
+      <form method="post" action="/logout" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+      </form>
+    </div>
+  </aside>
+  {% endif %}
+
+  <main id="main" class="{{ 'content' if user else 'auth-shell' }}">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

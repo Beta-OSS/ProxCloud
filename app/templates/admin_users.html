@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% set active_nav = "users" %}
+{% block title %}Users · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1>Users</h1>
+      <p>Create accounts and manage access to the portal.</p>
+    </div>
+  </header>
+  {% include "_users_panel.html" %}
+</div>
+{% endblock %}
