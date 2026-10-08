@@ -30,9 +30,9 @@ def _vm_templates_view(
 ):
     return render(
         request,
-        "_vm_templates_panel.html"
+        "admin/_vm_templates_panel.html"
         if is_htmx(request)
-        else "admin_vm_templates.html",
+        else "admin/admin_vm_templates.html",
         user=ctx.user,
         csrf_token=ctx.session.csrf_token,
         vm_templates=list_vm_templates(db),

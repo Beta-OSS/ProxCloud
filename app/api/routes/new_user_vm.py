@@ -27,7 +27,7 @@ def vm_templates(
 
     return render(
         request,
-        "new_user_vm.html",
+        "user_actions/new_user_vm.html",
         user=ctx.user,
         csrf_token=ctx.session.csrf_token,
         vm_templates=templates,

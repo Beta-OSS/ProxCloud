@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% set active_nav = "admin" %}
+{% block title %}Administration · {{ app_name }}{% endblock %}
+{% block content %}
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1>Administration</h1>
+      <p>Manage who can use the portal and which VM templates they can deploy.</p>
+    </div>
+  </header>
+
+  <div class="stat-grid">
+    <div class="stat"><span class="stat-value">{{ user_counts.total }}</span><span class="stat-label">Total users</span></div>
+    <div class="stat"><span class="stat-value">{{ user_counts.active }}</span><span class="stat-label">Active users</span></div>
+    <div class="stat"><span class="stat-value">{{ user_counts.admins }}</span><span class="stat-label">Administrators</span></div>
+  </div>
+
+  <div class="link-list">
+    <a class="card link-card" href="/admin/users">
+      <h2>Users</h2>
+      <p>Create accounts, deactivate users, and reset passwords.</p>
+    </a>
+    <a class="card link-card" href="/admin/vm-templates">
+      <h2>VM templates</h2>
+      <p>Sync templates from Proxmox and choose which ones users can deploy.</p>
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -44,7 +44,7 @@ def _users_view(
 ):
     return render(
         request,
-        "_users_panel.html" if is_htmx(request) else "admin_users.html",
+        "admin/_users_panel.html" if is_htmx(request) else "admin/admin_users.html",
         user=ctx.user,
         csrf_token=ctx.session.csrf_token,
         users=list_users(db),

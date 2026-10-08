@@ -16,7 +16,7 @@ def admin_home(
 ):
     return render(
         request,
-        "admin.html",
+        "admin/admin.html",
         user=ctx.user,
         csrf_token=ctx.session.csrf_token,
         user_counts=user_counts(db),

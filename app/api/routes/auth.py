@@ -34,7 +34,7 @@ def _login_page(request: Request, *, error: str | None = None, status_code: int 
     s = get_settings()
     form_token, cookie_value = new_anon_csrf()
     response = render(
-        request, "login.html", csrf_token=form_token, error=error, username=username, status_code=status_code
+        request, "login/login.html", csrf_token=form_token, error=error, username=username, status_code=status_code
     )
     response.set_cookie(
         ANON_CSRF_COOKIE, cookie_value, httponly=True, secure=s.cookie_secure, samesite="lax", path="/", max_age=3600
@@ -87,7 +87,7 @@ def login_submit(
 
 @router.get("/2fa")
 def twofa_page(request: Request, ctx: PendingCtx):
-    return render(request, "twofa.html", csrf_token=ctx.session.csrf_token)
+    return render(request, "login/twofa.html", csrf_token=ctx.session.csrf_token)
 
 
 @router.post("/2fa", dependencies=[Depends(csrf_pending)])
@@ -112,7 +112,7 @@ def twofa_submit(request: Request, db: DbSession, ctx: PendingCtx, code: Annotat
         destroy_session(db, request.cookies[s.session_cookie_name])
         return _login_page(request, error="Too many incorrect codes. Please sign in again.", status_code=401)
     return render(
-        request, "twofa.html", csrf_token=ctx.session.csrf_token, error="Invalid code.", status_code=401
+        request, "login/twofa.html", csrf_token=ctx.session.csrf_token, error="Invalid code.", status_code=401
     )
 
 

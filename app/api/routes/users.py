@@ -34,7 +34,7 @@ def dashboard(
 
     return render(
         request,
-        "dashboard.html",
+        "user_actions/dashboard.html",
         user=ctx.user,
         csrf_token=ctx.session.csrf_token,
         user_vms=user_vms,
@@ -45,7 +45,7 @@ def _settings(request: Request, db, ctx, *, message=None, errors=None, setup=Non
     remaining = recovery.remaining(db, ctx.user.id) if ctx.user.totp_enabled else 0
     return render(
         request,
-        "settings.html",
+        "user_actions/settings.html",
         user=ctx.user,
         csrf_token=ctx.session.csrf_token,
         message=message,
