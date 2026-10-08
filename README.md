@@ -97,6 +97,39 @@ From there, administrators can configure available VM templates and users can ac
 
 Detailed deployment instructions and usage documentation will be expanded as the project moves toward its first stable release.
 
+## Roadmap
+
+ProxCloud is deliberately starting with a narrow scope. The first intended release, **v1.0-alpha**, focuses on providing a secure, self-service workflow for deploying and remotely accessing template-based virtual machines on Proxmox VE.
+
+### Road to v1.0-alpha
+
+* [x] Proxmox API integration
+* [x] VM discovery and template catalogue
+* [x] User accounts and production-ready authentication
+* [x] Administrator controls and template approval
+* [x] User dashboard
+* [ ] User VM management and lifecycle handling
+* [ ] Template-based VM deployment
+* [ ] Automatic VM inactivity handling
+* [ ] Remote VM access via RDP
+* [ ] HTTPS reverse-proxy configuration
+* [ ] User and developer documentation
+
+### Future Integration Plans
+
+Following v1.0-alpha, development will focus on expanding ProxCloud's self-service capabilities, security, and integration with the wider Proxmox ecosystem:
+
+* Role-based access control, VM ownership, and resource quotas
+* Advanced VM configuration, including Cloud-Init, networking, and SSH keys
+* Portal-based VM template creation and configuration
+* Snapshots and additional VM lifecycle management
+* Multi-node Proxmox support
+* API and CLI access
+* Additional remote-access and infrastructure integrations
+
+
+The long-term goal is to evolve ProxCloud into a complete self-service management layer for Proxmox VE. The project will continue to prioritise reliable VM deployment and remote access before expanding into broader infrastructure management.
+
 ## Why ProxCloud?
 
 Managing virtual machines directly through a hypervisor interface is powerful, but it can be unnecessarily complex for users who simply need a temporary or isolated computing environment.
@@ -308,42 +341,6 @@ Recommended deployment practices include:
 * Using secure credentials and environment configuration
 
 Security features and hardening remain active areas of development.
-
-## Roadmap
-
-ProxCloud is deliberately starting with a narrow scope.
-
-### Current
-
-* [x] Proxmox API integration
-* [x] VM discovery
-* [x] User accounts
-* [x] Production-ready account authentication
-* [x] Administrator controls
-* [x] VM template catalogue
-* [x] VM template approval
-* [x] User dashboard
-* [ ] Template-based VM deployment
-* [ ] VM lifecycle handling required for deployment
-* [ ] Remote VM access
-* [ ] Improved provisioning status
-* [ ] VM archival to a NAS
-
-### Planned
-
-* [ ] Role-based access control
-* [ ] User-owned VMs
-* [ ] VM quotas
-* [ ] Additional template configuration
-* [ ] Cloud-init integration
-* [ ] SSH key management
-* [ ] VM snapshots
-* [ ] Resource limits
-* [ ] Multi-node Proxmox support
-* [ ] Better networking configuration
-* [ ] API/CLI access
-
-The long-term goal is to evolve ProxCloud into a more complete self-service management layer for Proxmox, but the current project intentionally focuses on doing VM deployment and remote access well before expanding its scope.
 
 ## Project Status
 
