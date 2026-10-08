@@ -5,11 +5,13 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.clients.proxmox import clone_vm, start_vm, stop_vm
-from app.models.vm import UserVM
-from app.schemas.vm import UserVMCreate
-from app.services.vm_templates import get_vm_template
 from app.db.types import utcnow
+from app.core.config import get_settings
+
+from app.clients.proxmox import clone_vm, start_vm, stop_vm, get_node_vmids
+from app.models.user_vm import UserVM
+from app.schemas.user_vm import UserVMCreate
+from app.services.vm_templates import get_vm_template
 
 
 ## User VM Data Access Layer (not called directly by API endpoints)
@@ -48,6 +50,39 @@ def get_user_vm(
         )
     )
 
+async def _get_next_vm_id(
+    db: Session,
+    *,
+    node: str,
+) -> int:
+    settings = get_settings()
+
+    db_vmids = set(
+        db.scalars(
+            select(UserVM.vmid).where(
+                UserVM.node == node,
+                UserVM.vmid >= settings.user_vm_vmid_min,
+                UserVM.vmid <= settings.user_vm_vmid_max,
+            )
+        )
+    )
+
+    proxmox_vmids = await get_node_vmids(node)
+
+    used_vmids = db_vmids | proxmox_vmids
+
+    for vmid in range(
+        settings.user_vm_vmid_min,
+        settings.user_vm_vmid_max + 1,
+    ):
+        if vmid not in used_vmids:
+            return vmid
+
+    raise RuntimeError(
+        f"No available VMIDs on node '{node}' "
+        f"in range "
+        f"{settings.user_vm_vmid_min}-{settings.user_vm_vmid_max}."
+    )
 
 def _add_user_vm(
     db: Session,
@@ -64,6 +99,7 @@ def _add_user_vm(
         os=data.os,
         description=data.description,
         user_id=user_id,
+        is_active=False,
     )
 
     db.add(vm)
@@ -137,7 +173,6 @@ async def clone_user_vm(
     *,
     template_id: uuid.UUID,
     user_id: uuid.UUID,
-    vmid: int,
     name: str,
     description: str | None = None,
 ) -> UserVM:
@@ -153,6 +188,11 @@ async def clone_user_vm(
 
     if not template.is_approved:
         raise ValueError("VM template is not approved.")
+
+    vmid = await _get_next_vm_id(
+        db,
+        node=template.node,
+    )
 
     await clone_vm(
         node=template.node,

@@ -8,14 +8,13 @@ from app.core.dependencies import (
     DbSession,
     csrf_authed,
 )
+from app.core.templating import render
+from app.services.user_vms import clone_user_vm
+from app.services.vm_templates import list_approved_vm_templates
 
-from app.core.templating import is_htmx, render
-from app.services.vm_templates import (
-    list_approved_vm_templates,
-)
 
-router = APIRouter(prefix="/add-vm",)
-api_router = APIRouter(prefix="/add-vm",)
+router = APIRouter(prefix="/add-vm")
+
 
 @router.get("/")
 def vm_templates(
@@ -33,6 +32,7 @@ def vm_templates(
         vm_templates=templates,
     )
 
+
 @router.post(
     "/{template_id}/clone",
     dependencies=[Depends(csrf_authed)],
@@ -41,9 +41,18 @@ async def clone_vm_template(
     template_id: uuid.UUID,
     db: DbSession,
     ctx: AuthCtx,
+    name: str = Form(...),
+    description: str | None = Form(None),
 ):
-    user_id = ctx.user.id
+    await clone_user_vm(
+        db,
+        template_id=template_id,
+        user_id=ctx.user.id,
+        name=name,
+        description=description,
+    )
 
-    # TODO: Implement the logic to clone the VM template for the user.
-
-    return {"message": "VM cloned successfully."}
+    return RedirectResponse(
+        url="/dashboard/",
+        status_code=303,
+    )

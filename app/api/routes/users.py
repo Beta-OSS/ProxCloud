@@ -25,12 +25,19 @@ def me(ctx: AuthCtx) -> MeRead:
     return MeRead(**UserRead.model_validate(ctx.user).model_dump(), csrf_token=ctx.session.csrf_token)
 
 
+from app.services.user_vms import list_user_vms
+
+
 @router.get("/dashboard")
 def dashboard(
     request: Request,
+    db: DbSession,
     ctx: AuthCtx,
 ):
-    user_vms = []
+    user_vms = list_user_vms(
+        db,
+        user_id=ctx.user.id,
+    )
 
     return render(
         request,
