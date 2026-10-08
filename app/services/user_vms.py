@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.db.types import utcnow
 from app.core.config import get_settings
 
-from app.clients.proxmox import clone_vm, start_vm, stop_vm, get_node_vmids
+from app.clients.proxmox import clone_vm, start_vm, stop_vm, get_node_vmids, get_vm_ip
 from app.models.user_vm import UserVM
 from app.schemas.user_vm import UserVMCreate
 from app.services.vm_templates import get_vm_template
@@ -270,3 +270,27 @@ async def stop_user_vm(
         vm,
         is_active=False,
     )
+
+async def get_user_vm_ip(
+    db: Session,
+    *,
+    vm_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> str | None:
+    """Get the IP address of a user's VM."""
+
+    vm = get_user_vm(
+        db,
+        vm_id=vm_id,
+        user_id=user_id,
+    )
+
+    if vm is None:
+        return None
+
+    ip = await get_vm_ip(
+        node=vm.node,
+        vmid=vm.vmid,
+    )
+
+    return ip

@@ -103,6 +103,22 @@
                         </button>
                       </form>
                     {% endif %}
+                      <form
+                        method="post"
+                        action="/vms/{{ vm.id }}/connect"
+                      >
+                        <input
+                          type="hidden"
+                          name="csrf_token"
+                          value="{{ csrf_token }}"
+                        >
+                        <button
+                          type="submit"
+                          class="btn btn-secondary btn-sm"
+                        >
+                          Connect
+                        </button>
+                      </form>
                   </div>
                 </td>
               </tr>
