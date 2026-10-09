@@ -1,5 +1,7 @@
+
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -33,7 +35,13 @@ class UserVMRead(BaseModel):
 
     user_id: uuid.UUID
 
+    # Application state
     is_active: bool
 
+    # Proxmox runtime state
+    power_state: Literal["running", "stopped", "unknown"]
+    is_present: bool
+
+    # Timestamps
     created_at: datetime
     last_synced_at: datetime | None

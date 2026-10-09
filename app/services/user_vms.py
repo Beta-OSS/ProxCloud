@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.db.types import utcnow
 from app.core.config import get_settings
 
-from app.clients.proxmox import clone_vm, start_vm, stop_vm, get_node_vmids, get_vm_ip
+from app.clients.proxmox import clone_vm, start_vm, stop_vm, get_node_vmids, get_vm_ip, get_vm_status
 from app.models.user_vm import UserVM
 from app.schemas.user_vm import UserVMCreate
 from app.services.vm_templates import get_vm_template
@@ -137,12 +137,23 @@ def _update_user_vm_identity(
     return vm
 
 
-def _update_user_vm_sync_time(
+async def _sync_user_vm_state(
     db: Session,
     vm: UserVM,
 ) -> UserVM:
-    """Update the last Proxmox synchronisation time."""
+    """Refresh a VM's runtime state from Proxmox."""
 
+    status_data = await get_vm_status(
+        node=vm.node,
+        vmid=vm.vmid,
+    )
+
+    status = status_data.get("status", "unknown")
+    if status not in {"running", "stopped"}:
+        status = "unknown"
+
+    vm.power_state = status
+    vm.is_present = True
     vm.last_synced_at = utcnow()
 
     db.commit()
@@ -221,7 +232,7 @@ async def start_user_vm(
     vm_id: uuid.UUID,
     user_id: uuid.UUID,
 ) -> UserVM | None:
-    """Start a user's VM."""
+    """Request VM startup and synchronise its Proxmox state."""
 
     vm = get_user_vm(
         db,
@@ -232,16 +243,16 @@ async def start_user_vm(
     if vm is None:
         return None
 
+    if not vm.is_present:
+        raise ValueError("VM is not present in Proxmox.")
+
     await start_vm(
         node=vm.node,
         vmid=vm.vmid,
     )
 
-    return _update_user_vm_status(
-        db,
-        vm,
-        is_active=True,
-    )
+    return await _sync_user_vm_state(db, vm)
+
 
 async def stop_user_vm(
     db: Session,
@@ -249,7 +260,7 @@ async def stop_user_vm(
     vm_id: uuid.UUID,
     user_id: uuid.UUID,
 ) -> UserVM | None:
-    """Stop a user's VM."""
+    """Request VM shutdown and synchronise its Proxmox state."""
 
     vm = get_user_vm(
         db,
@@ -260,16 +271,16 @@ async def stop_user_vm(
     if vm is None:
         return None
 
+    if not vm.is_present:
+        raise ValueError("VM is not present in Proxmox.")
+
     await stop_vm(
         node=vm.node,
         vmid=vm.vmid,
     )
 
-    return _update_user_vm_status(
-        db,
-        vm,
-        is_active=False,
-    )
+    return await _sync_user_vm_state(db, vm)
+
 
 async def get_user_vm_ip(
     db: Session,

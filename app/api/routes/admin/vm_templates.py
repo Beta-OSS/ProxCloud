@@ -12,8 +12,8 @@ from app.services.vm_templates import (
     approve_vm_template,
     disapprove_vm_template,
     list_vm_templates,
-    sync_vm_templates,
 )
+from app.services.proxmox_sync import sync_proxmox_state
 
 router = APIRouter(prefix="/admin/vm-templates", dependencies=[Depends(require_admin)],)
 api_router = APIRouter(prefix="/api/admin/vm-templates", dependencies=[Depends(require_admin)],)
@@ -43,11 +43,12 @@ def _vm_templates_view(
 
 
 @router.get("")
-def vm_templates_page(
+async def vm_templates_page(
     request: Request,
     db: DbSession,
     ctx: AdminCtx,
 ):
+    await sync_proxmox_state(db)
     return _vm_templates_view(
         request,
         db,
@@ -63,8 +64,9 @@ async def sync_vm_templates_route(
     db: DbSession,
     ctx: AdminCtx,
 ):
+    await sync_proxmox_state(db)
     try:
-        result = await sync_vm_templates(db)
+        await sync_proxmox_state(db)
 
     except Exception:
         return _vm_templates_view(
@@ -80,9 +82,7 @@ async def sync_vm_templates_route(
         db,
         ctx,
         message=(
-            f"Synchronisation complete: "
-            f"{result['created']} created, "
-            f"{result['updated']} updated."
+            f"Synchronisation complete."
         ),
     )
 
@@ -90,12 +90,13 @@ async def sync_vm_templates_route(
     "/{template_id}/approve",
     dependencies=[Depends(csrf_authed)],
 )
-def approve_vm_template_route(
+async def approve_vm_template_route(
     request: Request,
     template_id: uuid.UUID,
     db: DbSession,
     ctx: AdminCtx,
 ):
+    await sync_proxmox_state(db)
     template = approve_vm_template(
         db,
         template_id,
@@ -119,12 +120,13 @@ def approve_vm_template_route(
     "/{template_id}/disapprove",
     dependencies=[Depends(csrf_authed)],
 )
-def disapprove_vm_template_route(
+async def disapprove_vm_template_route(
     request: Request,
     template_id: uuid.UUID,
     db: DbSession,
     ctx: AdminCtx,
 ):
+    await sync_proxmox_state(db)
     template = disapprove_vm_template(
         db,
         template_id,

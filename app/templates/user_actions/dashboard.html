@@ -25,6 +25,7 @@
               <th scope="col">Operating System</th>
               <th scope="col">VMID</th>
               <th scope="col">Status</th>
+              <th scope="col">Last Synced</th>
               <th scope="col">Created</th>
               <th scope="col">
                 <span class="sr-only">Actions</span>
@@ -37,28 +38,49 @@
               <tr>
                 <td>
                   <strong>{{ vm.name }}</strong>
+
                   {% if vm.description %}
                     <div class="description">{{ vm.description }}</div>
+                  {% endif %}
+
+                  {% if not vm.is_present %}
+                    <div class="description">
+                      This VM was not found in Proxmox during the last sync.
+                    </div>
+                  {% endif %}
+                </td>
+
+                <td>{{ vm.os or "Not specified" }}</td>
+
+                <td>{{ vm.vmid }}</td>
+
+                <td>
+                  {% if not vm.is_present %}
+                    <span class="badge status status-unknown">
+                      Missing
+                    </span>
+                  {% elif vm.power_state == "running" %}
+                    <span class="badge status status-running">
+                      Running
+                    </span>
+                  {% elif vm.power_state == "stopped" %}
+                    <span class="badge status status-stopped">
+                      Stopped
+                    </span>
+                  {% else %}
+                    <span class="badge status status-unknown">
+                      Unknown
+                    </span>
                   {% endif %}
                 </td>
 
                 <td>
-                  {{ vm.os or "Not specified" }}
-                </td>
-
-                <td>
-                  {{ vm.vmid }}
-                </td>
-
-                <td>
-                  {% if vm.is_active %}
-                    <span class="badge status status-running">
-                      Running
-                    </span>
+                  {% if vm.last_synced_at %}
+                    <time datetime="{{ vm.last_synced_at.isoformat() }}">
+                      {{ vm.last_synced_at.strftime("%Y-%m-%d %H:%M") }}
+                    </time>
                   {% else %}
-                    <span class="badge status status-stopped">
-                      Stopped
-                    </span>
+                    Never
                   {% endif %}
                 </td>
 
@@ -68,57 +90,43 @@
 
                 <td>
                   <div class="table-actions">
-                    {% if vm.is_active %}
-                      <form
-                        method="post"
-                        action="/vms/{{ vm.id }}/stop"
-                      >
+                    {% if vm.is_present and vm.power_state == "running" %}
+                      <form method="post" action="/vms/{{ vm.id }}/stop">
                         <input
                           type="hidden"
                           name="csrf_token"
                           value="{{ csrf_token }}"
                         >
-                        <button
-                          type="submit"
-                          class="btn btn-secondary btn-sm"
-                        >
+                        <button type="submit" class="btn btn-secondary btn-sm">
                           Stop
                         </button>
                       </form>
-                    {% else %}
-                      <form
-                        method="post"
-                        action="/vms/{{ vm.id }}/start"
-                      >
+
+                    {% elif vm.is_present and vm.power_state == "stopped" %}
+                      <form method="post" action="/vms/{{ vm.id }}/start">
                         <input
                           type="hidden"
                           name="csrf_token"
                           value="{{ csrf_token }}"
                         >
-                        <button
-                          type="submit"
-                          class="btn btn-primary btn-sm"
-                        >
+                        <button type="submit" class="btn btn-primary btn-sm">
                           Start
                         </button>
                       </form>
                     {% endif %}
-                      <form
-                        method="post"
-                        action="/vms/{{ vm.id }}/connect"
-                      >
+
+                    {% if vm.is_present and vm.power_state == "running" %}
+                      <form method="post" action="/vms/{{ vm.id }}/connect">
                         <input
                           type="hidden"
                           name="csrf_token"
                           value="{{ csrf_token }}"
                         >
-                        <button
-                          type="submit"
-                          class="btn btn-secondary btn-sm"
-                        >
+                        <button type="submit" class="btn btn-secondary btn-sm">
                           Connect
                         </button>
                       </form>
+                    {% endif %}
                   </div>
                 </td>
               </tr>

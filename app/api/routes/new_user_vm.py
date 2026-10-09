@@ -11,17 +11,18 @@ from app.core.dependencies import (
 from app.core.templating import render
 from app.services.user_vms import clone_user_vm
 from app.services.vm_templates import list_approved_vm_templates
-
+from app.services.proxmox_sync import sync_proxmox_state
 
 router = APIRouter(prefix="/add-vm")
 
 
 @router.get("/")
-def vm_templates(
+async def vm_templates(
     request: Request,
     db: DbSession,
     ctx: AuthCtx,
 ):
+    await sync_proxmox_state(db)
     templates = list_approved_vm_templates(db)
 
     return render(
@@ -44,6 +45,7 @@ async def clone_vm_template(
     name: str = Form(...),
     description: str | None = Form(None),
 ):
+    await sync_proxmox_state(db)
     await clone_user_vm(
         db,
         template_id=template_id,

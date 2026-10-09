@@ -1,7 +1,18 @@
+
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, Uuid, func, true
+from sqlalchemy import (
+    Boolean,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    Uuid,
+    func,
+    false,
+    true,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
@@ -51,8 +62,23 @@ class UserVM(Base):
         nullable=False,
     )
 
-    # VM state
+    # Application state
     is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default=false(),
+        nullable=False,
+    )
+
+    # Proxmox runtime state
+    power_state: Mapped[str] = mapped_column(
+        String(16),
+        default="unknown",
+        server_default="unknown",
+        nullable=False,
+    )
+
+    is_present: Mapped[bool] = mapped_column(
         Boolean,
         default=True,
         server_default=true(),

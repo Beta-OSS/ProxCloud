@@ -167,3 +167,8 @@ async def get_vm_ip(
                 return ip.get("ip-address")
 
     return None
+
+async def get_vm_status(node: str, vmid: int) -> dict[str, Any]:
+    return await proxmox_get(
+        f"/nodes/{node}/qemu/{vmid}/status/current"
+    )
