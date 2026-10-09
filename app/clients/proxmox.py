@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import os
 from typing import Any
-
+import asyncio
+import time
 import httpx
 
 
@@ -39,7 +40,6 @@ async def proxmox_get(path: str) -> Any:
         )
 
     response.raise_for_status()
-    print(response, response.json()["data"])
     return response.json()["data"]
 
 async def proxmox_post(
@@ -54,6 +54,27 @@ async def proxmox_post(
         timeout=10.0,
     ) as client:
         response = await client.post(
+            url,
+            headers=proxmox_headers(),
+            data=data,
+        )
+
+    response.raise_for_status()
+
+    return response.json()["data"]
+
+async def proxmox_put(
+    path: str,
+    data: dict[str, Any] | None = None,
+) -> Any:
+    """Perform a PUT request against the Proxmox API."""
+    url = f"{PROXMOX_URL}/api2/json{path}"
+
+    async with httpx.AsyncClient(
+        verify=PROXMOX_VERIFY_SSL,
+        timeout=10.0,
+    ) as client:
+        response = await client.put(
             url,
             headers=proxmox_headers(),
             data=data,
@@ -117,13 +138,16 @@ async def clone_vm(
     newid: int,
     name: str,
 ) -> None:
-    await proxmox_post(
+    upid = await proxmox_post(
         f"/nodes/{node}/qemu/{vmid}/clone",
-        {
+        data={
             "newid": newid,
             "name": name,
+            "full": 1,
         },
     )
+
+    await wait_for_task(node, upid)
 
 
 async def start_vm(
@@ -179,3 +203,83 @@ async def get_vm_status(node: str, vmid: int) -> dict[str, Any]:
     return await proxmox_get(
         f"/nodes/{node}/qemu/{vmid}/status/current"
     )
+
+async def set_vm_qemu_agent(
+    node: str,
+    vmid: int,
+    *,
+    enabled: bool = True,
+) -> None:
+    """Enable or disable the QEMU Guest Agent for a VM."""
+
+    await proxmox_put(
+        f"/nodes/{node}/qemu/{vmid}/config",
+        data={"agent": int(enabled)},
+    )
+
+async def wait_for_task(
+    node: str,
+    upid: str,
+    *,
+    timeout: float = 300,
+    poll_interval: float = 2,
+) -> None:
+    """Wait for a Proxmox task to finish successfully."""
+
+    deadline = time.monotonic() + timeout
+
+    while time.monotonic() < deadline:
+        task = await proxmox_get(
+            f"/nodes/{node}/tasks/{upid}/status"
+        )
+
+        if task.get("status") == "stopped":
+            if task.get("exitstatus") != "OK":
+                raise RuntimeError(
+                    f"Proxmox task failed: {task.get('exitstatus')}"
+                )
+            return
+
+        await asyncio.sleep(poll_interval)
+
+    raise TimeoutError(f"Proxmox task did not finish within {timeout}s")
+
+async def proxmox_delete(path: str) -> Any:
+    """Perform a DELETE request against the Proxmox API."""
+    url = f"{PROXMOX_URL}/api2/json{path}"
+
+    async with httpx.AsyncClient(
+        verify=PROXMOX_VERIFY_SSL,
+        timeout=10.0,
+    ) as client:
+        response = await client.delete(
+            url,
+            headers=proxmox_headers(),
+        )
+
+    response.raise_for_status()
+    return response.json()["data"]
+    
+async def delete_vm(
+    node: str,
+    vmid: int,
+    *,
+    timeout: float = 300,
+) -> None:
+    """Delete a QEMU VM and wait for Proxmox to finish."""
+
+    upid = await proxmox_delete(
+        f"/nodes/{node}/qemu/{vmid}",
+    )
+
+    if not isinstance(upid, str) or not upid:
+        raise RuntimeError(
+            f"Proxmox did not return a task UPID when deleting VM {vmid}."
+        )
+
+    await wait_for_task(
+        node=node,
+        upid=upid,
+        timeout=timeout,
+    )
+

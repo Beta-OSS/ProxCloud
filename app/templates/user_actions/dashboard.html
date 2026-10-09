@@ -127,6 +127,23 @@
                         </button>
                       </form>
                     {% endif %}
+                    <form
+                      method="post"
+                      action="/vms/{{ vm.id }}/delete"
+                      onsubmit="return confirm('Permanently delete {{ vm.name | e }}? This cannot be undone.');"
+                    >
+                      <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token }}"
+                      >
+                      <button
+                        type="submit"
+                        class="btn btn-danger btn-sm"
+                      >
+                        Delete
+                      </button>
+                    </form>
                   </div>
                 </td>
               </tr>

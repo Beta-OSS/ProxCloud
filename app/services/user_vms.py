@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import uuid
+import asyncio
+import time
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -8,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.db.types import utcnow
 from app.core.config import get_settings
 
-from app.clients.proxmox import clone_vm, start_vm, stop_vm, get_node_vmids, get_vm_ip, get_vm_status
+from app.clients.proxmox import clone_vm, start_vm, stop_vm, get_node_vmids, get_vm_ip, get_vm_status, set_vm_qemu_agent, delete_vm
 from app.models.user_vm import UserVM
 from app.schemas.user_vm import UserVMCreate
 from app.services.vm_templates import get_vm_template
@@ -212,6 +214,12 @@ async def clone_user_vm(
         name=name,
     )
 
+    await set_vm_qemu_agent(
+        node=template.node,
+        vmid=vmid,
+        enabled=True,
+    )
+
     vm = _add_user_vm(
         db,
         data=UserVMCreate(
@@ -305,3 +313,45 @@ async def get_user_vm_ip(
     )
 
     return ip
+
+async def delete_user_vm(
+    db: Session,
+    *,
+    vm_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> bool:
+    """Delete a user's VM from Proxmox and the database.
+
+    If the VM is already missing from Proxmox, remove only
+    the database record.
+
+    Returns False if the user does not own the VM.
+    Raises an exception if Proxmox deletion fails.
+    """
+
+    vm = get_user_vm(
+        db,
+        vm_id=vm_id,
+        user_id=user_id,
+    )
+
+    if vm is None:
+        return False
+
+    # Check Proxmox directly instead of relying on a potentially
+    # stale is_present value from the last inventory sync.
+    proxmox_vmids = await get_node_vmids(vm.node)
+
+    if vm.vmid in proxmox_vmids:
+        # This must wait for successful deletion, or raise.
+        await delete_vm(
+            node=vm.node,
+            vmid=vm.vmid,
+        )
+
+    # Only remove the database record after the Proxmox
+    # deletion succeeds, or if the VM was already missing.
+    db.delete(vm)
+    db.commit()
+
+    return True
