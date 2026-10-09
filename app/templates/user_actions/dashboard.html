@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% set active_nav = "dashboard" %}
 {% block title %}My VMs · {{ app_name }}{% endblock %}
+
 {% block content %}
 <div class="page">
   <header class="page-header">
@@ -8,8 +9,9 @@
       <h1>My VMs</h1>
       <p>Your provisioned virtual machines.</p>
     </div>
+
     <div class="page-header-actions">
-      <a class="btn btn-primary" href="/add-vm">Create VM</a>
+      <a class="btn btn-primary" href="/add-vm/">Create VM</a>
     </div>
   </header>
 
@@ -20,20 +22,113 @@
           <thead>
             <tr>
               <th scope="col">Name</th>
-              <th scope="col">Template</th>
+              <th scope="col">Operating System</th>
+              <th scope="col">VMID</th>
               <th scope="col">Status</th>
+              <th scope="col">Last Synced</th>
               <th scope="col">Created</th>
-              <th scope="col"><span class="sr-only">Actions</span></th>
+              <th scope="col">
+                <span class="sr-only">Actions</span>
+              </th>
             </tr>
           </thead>
+
           <tbody>
             {% for vm in user_vms %}
               <tr>
-                <td><a href="/vms/{{ vm.id }}"><strong>{{ vm.name }}</strong></a></td>
-                <td>{{ vm.template.name }}</td>
-                <td><span class="badge status status-{{ vm.status | lower }}">{{ vm.status | capitalize }}</span></td>
-                <td>{{ vm.created_at.strftime("%Y-%m-%d") }}</td>
-                <td><a class="btn btn-secondary btn-sm" href="/vms/{{ vm.id }}">Open</a></td>
+                <td>
+                  <strong>{{ vm.name }}</strong>
+
+                  {% if vm.description %}
+                    <div class="description">{{ vm.description }}</div>
+                  {% endif %}
+
+                  {% if not vm.is_present %}
+                    <div class="description">
+                      This VM was not found in Proxmox during the last sync.
+                    </div>
+                  {% endif %}
+                </td>
+
+                <td>{{ vm.os or "Not specified" }}</td>
+
+                <td>{{ vm.vmid }}</td>
+
+                <td>
+                  {% if not vm.is_present %}
+                    <span class="badge status status-unknown">
+                      Missing
+                    </span>
+                  {% elif vm.power_state == "running" %}
+                    <span class="badge status status-running">
+                      Running
+                    </span>
+                  {% elif vm.power_state == "stopped" %}
+                    <span class="badge status status-stopped">
+                      Stopped
+                    </span>
+                  {% else %}
+                    <span class="badge status status-unknown">
+                      Unknown
+                    </span>
+                  {% endif %}
+                </td>
+
+                <td>
+                  {% if vm.last_synced_at %}
+                    <time datetime="{{ vm.last_synced_at.isoformat() }}">
+                      {{ vm.last_synced_at.strftime("%Y-%m-%d %H:%M") }}
+                    </time>
+                  {% else %}
+                    Never
+                  {% endif %}
+                </td>
+
+                <td>
+                  {{ vm.created_at.strftime("%Y-%m-%d") }}
+                </td>
+
+                <td>
+                  <div class="table-actions">
+                    {% if vm.is_present and vm.power_state == "running" %}
+                      <form method="post" action="/vms/{{ vm.id }}/stop">
+                        <input
+                          type="hidden"
+                          name="csrf_token"
+                          value="{{ csrf_token }}"
+                        >
+                        <button type="submit" class="btn btn-secondary btn-sm">
+                          Stop
+                        </button>
+                      </form>
+
+                    {% elif vm.is_present and vm.power_state == "stopped" %}
+                      <form method="post" action="/vms/{{ vm.id }}/start">
+                        <input
+                          type="hidden"
+                          name="csrf_token"
+                          value="{{ csrf_token }}"
+                        >
+                        <button type="submit" class="btn btn-primary btn-sm">
+                          Start
+                        </button>
+                      </form>
+                    {% endif %}
+
+                    {% if vm.is_present and vm.power_state == "running" %}
+                      <form method="post" action="/vms/{{ vm.id }}/connect">
+                        <input
+                          type="hidden"
+                          name="csrf_token"
+                          value="{{ csrf_token }}"
+                        >
+                        <button type="submit" class="btn btn-secondary btn-sm">
+                          Connect
+                        </button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </td>
               </tr>
             {% endfor %}
           </tbody>
@@ -43,7 +138,7 @@
       <div class="empty">
         <h2>No virtual machines yet</h2>
         <p>Pick an approved template and your first VM will appear here.</p>
-        <a class="btn btn-primary" href="/add-vm">Create a VM</a>
+        <a class="btn btn-primary" href="/add-vm/">Create a VM</a>
       </div>
     {% endif %}
   </section>

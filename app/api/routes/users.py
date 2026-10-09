@@ -10,6 +10,7 @@ from app.models.user import User
 from app.schemas.user import MeRead, UserRead, validate_new_password
 from app.services.auth import rate_limit, recovery, totp
 from app.services.users import change_password
+from app.services.proxmox_sync import sync_proxmox_state
 
 router = APIRouter()
 api_router = APIRouter(prefix="/api")
@@ -25,12 +26,20 @@ def me(ctx: AuthCtx) -> MeRead:
     return MeRead(**UserRead.model_validate(ctx.user).model_dump(), csrf_token=ctx.session.csrf_token)
 
 
+from app.services.user_vms import list_user_vms
+
+
 @router.get("/dashboard")
-def dashboard(
+async def dashboard(
     request: Request,
+    db: DbSession,
     ctx: AuthCtx,
 ):
-    user_vms = []
+    await sync_proxmox_state(db)
+    user_vms = list_user_vms(
+        db,
+        user_id=ctx.user.id,
+    )
 
     return render(
         request,

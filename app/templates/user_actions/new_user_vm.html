@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% set active_nav = "add_vm" %}
 {% block title %}Create VM · {{ app_name }}{% endblock %}
+
 {% block content %}
 <div class="page">
   <header class="page-header">
@@ -16,17 +17,56 @@
         <article class="card template-card">
           <div>
             <h2>{{ template.name }}</h2>
-            {% if template.description %}<p class="description">{{ template.description }}</p>{% endif %}
+
+            {% if template.description %}
+              <p class="description">{{ template.description }}</p>
+            {% endif %}
           </div>
 
           <dl class="meta">
-            <dt>Operating system</dt><dd>{{ template.os or "Not specified" }}</dd>
-            <dt>Version</dt><dd>{{ template.version or "Not specified" }}</dd>
+            <dt>Operating system</dt>
+            <dd>{{ template.os or "Not specified" }}</dd>
+
+            <dt>Version</dt>
+            <dd>{{ template.version or "Not specified" }}</dd>
           </dl>
 
-          <div class="template-actions">
-            <button type="button" class="btn btn-primary" disabled title="VM deployment is not yet implemented">Clone</button>
-          </div>
+          <form
+            method="post"
+            action="/add-vm/{{ template.id }}/clone"
+            class="template-actions"
+          >
+            <input
+              type="hidden"
+              name="csrf_token"
+              value="{{ csrf_token }}"
+            >
+
+            <label for="name-{{ template.id }}">VM name</label>
+            <input
+              id="name-{{ template.id }}"
+              type="text"
+              name="name"
+              placeholder="My VM"
+              required
+              maxlength="255"
+            >
+
+            <label for="description-{{ template.id }}">Description</label>
+            <textarea
+              id="description-{{ template.id }}"
+              name="description"
+              placeholder="Optional description"
+              rows="3"
+            ></textarea>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+            >
+              Clone
+            </button>
+          </form>
         </article>
       {% endfor %}
     </div>
@@ -34,7 +74,10 @@
     <section class="card">
       <div class="empty">
         <h2>No templates available</h2>
-        <p>An administrator needs to approve at least one VM template before you can create a VM.</p>
+        <p>
+          An administrator needs to approve at least one VM template
+          before you can create a VM.
+        </p>
       </div>
     </section>
   {% endif %}

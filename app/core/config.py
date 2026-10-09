@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     argon2_memory_cost_kib: int = 65536
     argon2_parallelism: int = 4
 
+    user_vm_vmid_min: int = 500
+    user_vm_vmid_max: int = 999
+
     @field_validator("session_secret")
     @classmethod
     def _check_session_secret(cls, v: SecretStr) -> SecretStr:
