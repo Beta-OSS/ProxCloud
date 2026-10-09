@@ -106,6 +106,7 @@ def generate_rdp_file(
 
     if "windows" in os_lower:
         settings.extend([
+            "username:s:windowstemplate",
             "enablecredsspsupport:i:1",
             "negotiate security layer:i:1",
         ])
